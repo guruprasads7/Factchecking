@@ -15,7 +15,7 @@ public class App {
         final Document doc = Jsoup.connect("https://google.com/search?q=test").userAgent(USER_AGENT).get();
 
         //Traverse the results
-        for (Element result : doc.select("div#res div.g h3 a")){
+        for (Element result : doc.select("h3.r a")){
 
             final String title = result.text();
             final String url = result.attr("href");
