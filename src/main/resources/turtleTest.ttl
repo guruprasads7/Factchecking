@@ -1,0 +1,7 @@
+@prefix : <http://dbpedia.org/resource/>
+@prefix dbo: <http://dbpedia.org/ontology/>
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>
+
+:Albert_Einstein a dbo:Scientist;
+                 dbo:birthPlace :Ulm;
+                 dbo:birthDate "1879-03-14"^^xsd:date.

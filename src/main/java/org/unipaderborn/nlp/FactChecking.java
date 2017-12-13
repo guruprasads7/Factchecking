@@ -12,6 +12,8 @@ import java.util.Scanner;
 
 import javax.xml.bind.SchemaOutputResolver;
 
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.PrintUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -34,6 +36,8 @@ public class FactChecking {
     	System.out.println("Enter your String to Search: ");
     	Scanner scanner = new Scanner(System.in);
     	String querystring = scanner.nextLine().replace(" ", "+");
+    	//String querystring
+
     	System.out.println("Your queryString is " + querystring);
     	scanner.close();
     	
@@ -46,7 +50,7 @@ public class FactChecking {
     	
     	System.out.println(extractFromSearchEngine);
     	
-    	// Get page rank of a website
+    	//Get page rank of a website
     	//GetPageRank obj = new GetPageRank();
     	
         BagOfWordsApproach fc = new BagOfWordsApproach();
@@ -54,7 +58,9 @@ public class FactChecking {
         factToAssess[0] = "Albert Einstein";
         factToAssess[1] = "born";
         factToAssess[2] = "Ulm";
-        
+
+        testApacheJena();
+
         for(SearchResults res : extractFromSearchEngine){
         	boolean isStatementTrue = fc.BagOfWordsApproach(factToAssess, res.getBody() + res.getTitle() , 1, 1, 1);
         	
@@ -62,12 +68,38 @@ public class FactChecking {
         		System.out.println("Document " + res.getTitle() + "Contains input string");
         	}
         }
-        
-       
-    	
-
     }
-    
+
+    private static void testApacheJena(){
+        Model model = ModelFactory.createDefaultModel();
+        model.read("src/main/resources/turtleTest.ttl");
+
+        // list the statements in the Model
+        StmtIterator iter = model.listStatements();
+
+        // print out the predicate, subject and object of each statement
+        while (iter.hasNext()) {
+            Statement stmt      = iter.nextStatement();  // get next statement
+            Resource  subject   = stmt.getSubject();     // get the subject
+            Property  predicate = stmt.getPredicate();   // get the predicate
+            RDFNode   object    = stmt.getObject();      // get the object
+
+            PrintUtil pUtil = new PrintUtil();
+            pUtil.removePrefix(subject.toString());
+
+            //System.out.print("The subject is " + PrintUtil.removePrefix(subject.toString()) + "\n");
+
+            System.out.print("The predicate is " + predicate.toString() + "\n");
+            if (object instanceof Resource) {
+                System.out.print("The object is " + object.toString() + "\n");
+            } else {
+                // object is a literal
+                System.out.print(" \"" + object.toString() + "\"");
+            }
+
+            System.out.println(" .");
+        }
+    }
     
     private static ArrayList<SearchResults> getResultsCustomGoogleSearch (String query) throws IOException {
 
