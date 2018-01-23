@@ -3,7 +3,6 @@ package org.unipaderborn.nlp;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import org.unipaderborn.nlp.JenkinsHash;
 import java.util.Random;
 
 /**

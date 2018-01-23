@@ -1,12 +1,9 @@
 package org.unipaderborn.nlp;
 
-import edu.stanford.nlp.ling.Word;
-import edu.stanford.nlp.simple.*;
-import edu.stanford.nlp.trees.Tree;
-
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+
+import edu.stanford.nlp.simple.Document;
+import edu.stanford.nlp.simple.Sentence;
 
 public class BagOfWordsApproach {
 

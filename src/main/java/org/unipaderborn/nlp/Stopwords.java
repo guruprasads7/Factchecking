@@ -1,9 +1,9 @@
 package org.unipaderborn.nlp;
 
-import java.io.*;
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 
 public class Stopwords {
 
