@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 
@@ -33,7 +34,9 @@ public class FactChecking {
 		
 		List<InputFact> inputFacts = ioHandler.readFactsFromCSV("train.tsv"); 
 		
-		System.out.println(inputFacts.size());
+		//System.out.println(inputFacts.size());
+		
+		//getRelationsFromData();
 		
 		//ioHandler.writeOutput(inputFacts);
 		
@@ -52,33 +55,36 @@ public class FactChecking {
 		// System.out.println("Your queryString is " + querystring);
 		// scanner.close();
 
-		/*
-		 * ExtractDataFromWeb webcrawl = new ExtractDataFromWeb(); HashMap<String,
-		 * String> topresult = new HashMap<String, String>();
-		 * 
-		 * topresult = webcrawl.getTopResults(querystring);
-		 * //System.out.println(topresult.toString());
-		 * 
-		 * ArrayList<SearchResults> extractFromSearchEngine =
-		 * webcrawl.getResultsCustomGoogleSearch(querystring);
-		 * 
-		 * System.out.println(extractFromSearchEngine);
-		 * 
-		 * //Get page rank of a website //GetPageRank obj = new GetPageRank();
-		 * 
-		 * BagOfWordsApproach fc = new BagOfWordsApproach(); String[] factToAssess = new
-		 * String[3]; factToAssess[0] = "Albert Einstein"; factToAssess[1] = "born";
-		 * factToAssess[2] = "Ulm";
-		 * 
-		 * //testApacheJena();
-		 * 
-		 * for(SearchResults res : extractFromSearchEngine){ boolean isStatementTrue =
-		 * fc.BagOfWordsApproach(factToAssess, res.getBody() + res.getTitle() , 1, 1,
-		 * 1);
-		 * 
-		 * if (isStatementTrue){ System.out.println("Document " + res.getTitle() +
-		 * "Contains input string"); } }
-		 */
+		
+		  ExtractDataFromWeb webcrawl = new ExtractDataFromWeb(); 
+		  HashMap<String,String> topresult = new HashMap<String, String>();
+		 
+		 //topresult = webcrawl.getTopResults(querystring);
+		  //System.out.println(topresult.toString());
+		 
+		  ArrayList<SearchResults> extractFromSearchEngine =webcrawl.getResultsCustomGoogleSearch("Albert Einstein Born in Ulm");
+		  
+		  System.out.println(extractFromSearchEngine);
+		  
+		  System.exit(1);
+		  
+		  //Get page rank of a website //GetPageRank obj = new GetPageRank();
+		  
+		  BagOfWordsApproach fc = new BagOfWordsApproach(); String[] factToAssess = new
+		  String[3]; factToAssess[0] = "Albert Einstein"; factToAssess[1] = "born";
+		  factToAssess[2] = "Ulm";
+		  
+		  //testApacheJena();
+		  
+		  for(SearchResults res : extractFromSearchEngine){ boolean isStatementTrue =
+		  fc.BagOfWordsApproach(factToAssess, res.getBody() + res.getTitle() , 1, 1,
+		 1);
+		  
+		  if (isStatementTrue){ 
+			  System.out.println("Document " + res.getTitle() + "Contains input string");
+			  } 
+		  }
+		 
 
 		// getRelationsFromData();
 
@@ -90,7 +96,7 @@ public class FactChecking {
 		props.setProperty("annotators", "tokenize,ssplit,pos,lemma,depparse,ner,natlog,mention,coref");
 		// props.setProperty("annotators",
 		// "tokenize,ssplit,pos,lemma,ner,parse,mention,coref");
-		StanfordCoreNLPClient pipeline = new StanfordCoreNLPClient(props, "localhost", 9000, 2);
+		StanfordCoreNLPClient pipeline = new StanfordCoreNLPClient(props, "http://139.18.2.39", 9000, 1);
 		// StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 
 		System.out.println("hello");
@@ -98,6 +104,7 @@ public class FactChecking {
 		Annotation doc = new Annotation("Hong Kong is Team and Concepts' innovation place");
 		pipeline.annotate(doc);
 
+		/*
 		// CorefChain
 		for (CorefChain cc : doc.get(CorefCoreAnnotations.CorefChainAnnotation.class).values()) {
 			System.out.println("\t" + cc);
@@ -110,7 +117,8 @@ public class FactChecking {
 				System.out.println("\t" + m);
 			}
 		}
-
+		*/
+		
 		// Loop over sentences in the document
 		for (CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class)) {
 			// Get the OpenIE triples for the sentence
