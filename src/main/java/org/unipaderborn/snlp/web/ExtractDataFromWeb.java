@@ -1,10 +1,11 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp.web;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,6 +20,7 @@ import org.apache.jena.util.PrintUtil;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.unipaderborn.snlp.models.SearchResults;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -68,14 +70,16 @@ public class ExtractDataFromWeb {
     	ArrayList<SearchResults> customsearchResults= new ArrayList<SearchResults>(); 
     	
     	String URIString = "https://www.googleapis.com/customsearch/v1?key=";
-    	String key="AIzaSyDSBzaDhhzvFjtu6axrDqc76GkXclFvWao";
-    	String customSearchEngineID = "009393578226351920957:dy0ftpipfdm";
+    	String key="AIzaSyBD_ca3syF7pZruUK3RUWrxmYNql1BhBAI";
+    	String customSearchEngineID = "009393578226351920957:lyufjpspmwe";
     	String fields = "kind,items(title,link,snippet)";
-    	
+    	URLEncoder.encode(query, "UTF-8");
     	//String extactTerms = "&exactTerms=albert+einstein+born+in+ulm";
     	
-        URL url = new URL(
-                URIString + key + "&cx=" + customSearchEngineID + "&q="+ query + "+&fields=" + fields );
+        URL url = new URL(URIString + key + "&cx=" + customSearchEngineID + "&q="+ URLEncoder.encode(query, "UTF-8") + "+-filetype%3Apdf" + "&fields=" + fields);
+        
+        //GET https://www.googleapis.com/customsearch/v1?key=INSERT_YOUR_API_KEY&cx=017576662512468239146:omuauf_lfve&q=lectures
+
         
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

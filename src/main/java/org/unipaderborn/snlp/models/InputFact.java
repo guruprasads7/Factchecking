@@ -1,4 +1,4 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp.models;
 
 public class InputFact {
 

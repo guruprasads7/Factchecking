@@ -1,4 +1,4 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp.search;
 
 import java.io.BufferedReader;
 import java.io.FileReader;

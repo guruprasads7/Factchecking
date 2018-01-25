@@ -1,4 +1,4 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,6 +15,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.VCARD;
+import org.unipaderborn.snlp.models.InputFact;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 //import com.hp.hpl.jena.rdf.model.Literal;

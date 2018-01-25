@@ -1,4 +1,4 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp.web;
 
 import java.io.InputStream;
 import java.net.URL;

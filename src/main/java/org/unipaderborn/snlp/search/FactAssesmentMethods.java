@@ -1,11 +1,11 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp.search;
 
 import java.util.List;
 
 import edu.stanford.nlp.simple.Document;
 import edu.stanford.nlp.simple.Sentence;
 
-public class BagOfWordsApproach {
+public class FactAssesmentMethods {
 
 
     public boolean BagOfWordsApproach(String[] factToAssess, String corpus,

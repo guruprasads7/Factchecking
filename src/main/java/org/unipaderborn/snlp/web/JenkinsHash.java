@@ -1,4 +1,4 @@
-package org.unipaderborn.nlp;
+package org.unipaderborn.snlp.web;
 
 /**
  * Hash algorithm by Bob Jenkins, 1996.
