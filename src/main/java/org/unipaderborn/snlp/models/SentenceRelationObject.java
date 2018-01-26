@@ -5,10 +5,9 @@ public class SentenceRelationObject {
 	String subject = null;
 	String predicate = null;
 	String object  = null;
-	
-	
+		
 	public SentenceRelationObject(String subject, String predicate, String object) {
-		super();
+	
 		this.subject = subject;
 		this.predicate = predicate;
 		this.object = object;

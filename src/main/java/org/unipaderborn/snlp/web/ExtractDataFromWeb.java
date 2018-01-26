@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -63,6 +64,17 @@ public class ExtractDataFromWeb {
         }
     }
     
+	private SearchResults setSearchResultsObj(String title,String body, String linkURL){
+		
+		SearchResults searchResult = new SearchResults();
+		
+		searchResult.setTitle(title);
+		searchResult.setBody(body);
+		searchResult.setLinkURL(linkURL);
+		
+		return searchResult;
+	}
+	
     public ArrayList<SearchResults> getResultsCustomGoogleSearch (String query) throws IOException {
 
     	JsonParser parser = new JsonParser();
@@ -70,9 +82,9 @@ public class ExtractDataFromWeb {
     	ArrayList<SearchResults> customsearchResults= new ArrayList<SearchResults>(); 
     	
     	String URIString = "https://www.googleapis.com/customsearch/v1?key=";
-    	String key="AIzaSyBD_ca3syF7pZruUK3RUWrxmYNql1BhBAI";
-    	String customSearchEngineID = "009393578226351920957:lyufjpspmwe";
-    	String fields = "kind,items(title,link,snippet)";
+    	String key="AIzaSyDSBzaDhhzvFjtu6axrDqc76GkXclFvWao";
+    	String customSearchEngineID = "009393578226351920957:t1ghgtufjhi";
+    	String fields = "queries,items(title,link,snippet)";
     	URLEncoder.encode(query, "UTF-8");
     	//String extactTerms = "&exactTerms=albert+einstein+born+in+ulm";
     	
@@ -86,32 +98,76 @@ public class ExtractDataFromWeb {
         conn.setRequestProperty("Accept", "application/json");
         BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
         
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("");
         
         String line;
         while ((line = br.readLine()) != null) {
             sb.append(line);
         }
         
-        JsonObject rootObj = parser.parse(sb.toString()).getAsJsonObject();       
-        System.out.println(rootObj.get("kind").getAsString());
-        JsonArray resArray = rootObj.getAsJsonArray("items");
+        String searchResult = sb.toString();
+        searchResult = Normalizer.normalize(searchResult, Normalizer.Form.NFD);
+        String normalizedString = searchResult.replaceAll("[^\\x00-\\x7F\"\']", "").replaceAll("\\\\n", "").replaceAll("\\\\r", "");
         
-        for (JsonElement pa : resArray) {
+        System.out.println(normalizedString);
+        
+        
+        if (sb == null || sb.toString().equals("")) {
         	
-        	SearchResults res = new SearchResults();
-        	
-            JsonObject paymentObj = pa.getAsJsonObject();
-            String     title     = paymentObj.get("title").getAsString();
-            String     link 	 = paymentObj.get("link").getAsString();
-            String 	snippet      = paymentObj.get("snippet").getAsString();
-            res.setTitle(title);
-            res.setBody(snippet);
-            res.setLinkURL(link);
-            
-            customsearchResults.add(res);
-            
+        	SearchResults res = setSearchResultsObj("No result", "No result", "No result");
+         	customsearchResults.add(res);
+        	conn.disconnect();
+        	return customsearchResults;
         }
+        
+        JsonObject rootObj = parser.parse(searchResult).getAsJsonObject();
+       
+        // Checks in retreived json result, the count of the results returned,
+        /*
+        "queries": {
+        	  "request": [
+        	   {
+        	    "title": "Google Custom Search - hello",
+        	    "totalResults": "104000000",
+        	    "searchTerms": "hello",
+        	    "count": 10,
+        	    "startIndex": 1,
+        	    "inputEncoding": "utf8",
+        	    "outputEncoding": "utf8",
+        	    "safe": "off",
+        	    "cx": "009393578226351920957:lyufjpspmwe"
+        	   }
+        */
+        JsonObject queriesJson = rootObj.getAsJsonObject("queries");
+        JsonArray request = queriesJson.getAsJsonArray("request");
+        JsonObject requestJson = (JsonObject) request.get(0);
+        int totalResults = requestJson.get("totalResults").getAsInt();
+        System.out.println("Total Results = " + totalResults);
+        
+        // Fetch the details from the webpages only if the results returned are greater than 0
+        if(totalResults  > 0) {
+        	
+        	JsonArray resArray = rootObj.getAsJsonArray("items");
+            for (JsonElement pa : resArray) {
+            	
+            	SearchResults res = new SearchResults();
+            	
+                JsonObject paymentObj = pa.getAsJsonObject();
+                String     title     = paymentObj.get("title").getAsString();
+                String     link 	 = paymentObj.get("link").getAsString();
+                String 	snippet      = paymentObj.get("snippet").getAsString();
+                
+                res = setSearchResultsObj(title, snippet, link);
+                customsearchResults.add(res);
+                
+            }
+        	
+        }  else {
+        	System.out.println("No results returned from google search");
+        	SearchResults res = setSearchResultsObj("No result", "No result", "No result");
+        	customsearchResults.add(res);
+        }
+        
         conn.disconnect();
         return customsearchResults;
         

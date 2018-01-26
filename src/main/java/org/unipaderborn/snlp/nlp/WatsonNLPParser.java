@@ -1,8 +1,13 @@
 package org.unipaderborn.snlp.nlp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.unipaderborn.snlp.models.SentenceRelationKeyWordsObject;
 import org.unipaderborn.snlp.models.SentenceRelationObject;
+import org.unipaderborn.snlp.util.*;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -25,8 +30,15 @@ public class WatsonNLPParser {
 			);
 
 		
-	public static SentenceRelationObject getRelationsKeywords(String inputstatement) {
+	public SentenceRelationKeyWordsObject getRelationsKeywords(String inputstatement) {
 
+		System.out.println("hello");
+		
+		SentenceRelationKeyWordsObject relationsKeywords = new SentenceRelationKeyWordsObject();
+		
+		SentenceRelationObject extracttedRelations = new SentenceRelationObject();
+		List<String> extractedKeywords = new ArrayList<String>();
+		
 		SemanticRolesOptions semanticRoles = new SemanticRolesOptions.Builder().build();
 		KeywordsOptions keywords = new KeywordsOptions.Builder().build();
 		
@@ -34,48 +46,84 @@ public class WatsonNLPParser {
 
 		AnalyzeOptions parameters = new AnalyzeOptions.Builder().text(inputstatement).features(features).build();
 
-		AnalysisResults response = service.analyze(parameters).execute();
+		AnalysisResults response = null;
+		try {
+			response = service.analyze(parameters).execute();
+		} catch(Exception e) {
+			System.out.println("Error occured while calling the watson API" + e.getMessage());
+			extracttedRelations = setSentenceRelationObject("error", "error", "error");
+			relationsKeywords.setRelationsObject(extracttedRelations);
+			return relationsKeywords;
+		}
+		
+		System.out.println("hello");
 		System.out.println(response);
 
-		SentenceRelationObject relations = extractSubjectObjectPredicate(response.toString());
-		HashMap<String, Double> keywordWithRevalance = extractKeywordsRelevance(response.toString());
+		extracttedRelations = extractSubjectObjectPredicate(response.toString());
+		extractedKeywords = extractKeywordsRelevance(response.toString());
 		
-		return relations;
+		relationsKeywords.setRelationsObject(extracttedRelations);
+		relationsKeywords.setKeywords(extractedKeywords);
 		
 		
+		return relationsKeywords;
+
 	}
 
-	private static HashMap<String, Double> extractKeywordsRelevance(String jsonString) {
+	private static List<String> extractKeywordsRelevance(String jsonString) {
 
+		List<String> keywordsArr = new ArrayList<String>();
 		JsonParser parser = new JsonParser();
 		JsonObject rootObj = parser.parse(jsonString).getAsJsonObject();
 
 		JsonArray keyArrayJson = rootObj.get("keywords").getAsJsonArray();
 
-		HashMap<String, Double> keywordRelevance = new HashMap<String, Double>();
+		if (keyArrayJson == null || keyArrayJson.size() == 0) {
+			System.out.println("No Keywords returned from the WatsonAPI");
+			return keywordsArr;
+		}
+		
 
 		for (JsonElement keywords : keyArrayJson) {
 
 			JsonObject keywordsObJ = keywords.getAsJsonObject();
 			String keyword = keywordsObJ.get("text").getAsString();
 			double relevance = keywordsObJ.get("relevance").getAsDouble();
-			keywordRelevance.put(keyword, relevance);
+			keywordsArr.add(keyword);
+			
 		}
 
-		System.out.println("Keywords = " + keywordRelevance.toString());
+		System.out.println("Keywords = " + keywordsArr.toString());
 		
-		return keywordRelevance;
+		return keywordsArr;
 
 	}
 
-	@SuppressWarnings("null")
-	private static SentenceRelationObject extractSubjectObjectPredicate(String jsonString) {
+	private  SentenceRelationObject setSentenceRelationObject(String subject, String object, String predicate) {
+		
+		SentenceRelationObject relationsObj = new SentenceRelationObject();
+		relationsObj.setSubject(subject);
+		relationsObj.setObject(object);
+		relationsObj.setPredicate(predicate);
+		
+		return relationsObj;
+		
+	}
+	
+	private SentenceRelationObject extractSubjectObjectPredicate(String jsonString) {
 
 		SentenceRelationObject relationsObj = new SentenceRelationObject();
 		JsonParser parser = new JsonParser();
 		JsonObject rootObj = parser.parse(jsonString).getAsJsonObject();
 
 		JsonArray semRelArray = rootObj.get("semantic_roles").getAsJsonArray();
+		
+		if (semRelArray == null || semRelArray.size() == 0) {
+			System.out.println("No relations returned from the WatsonAPI");
+			relationsObj = setSentenceRelationObject("No result", "No result", "No result");
+			return relationsObj;
+		}
+			
 
 		for (JsonElement pa : semRelArray) {
 
@@ -91,9 +139,7 @@ public class WatsonNLPParser {
 
 			System.out.println("Subject = " + subject + " Object = " + object + " Predicate =  " + predicate);
 			
-			relationsObj.setSubject(subject);
-			relationsObj.setObject(object);
-			relationsObj.setPredicate(predicate);
+			relationsObj = setSentenceRelationObject(subject,object,predicate);
 		}
 		
 		return relationsObj;
