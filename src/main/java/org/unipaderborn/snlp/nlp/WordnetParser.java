@@ -17,24 +17,12 @@ import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.unipaderborn.snlp.models.SearchResults;
-import org.unipaderborn.snlp.models.WordnetResults;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class WordnetParser {
 
-	public static void synonymExtractor() throws IOException, Exception {
+	public static List<String> synonymExtractor(List<String> keywords) throws IOException, Exception {
 
-		ArrayList<String> keywords = new ArrayList<String>(
-				Arrays.asList("Nobel Prize", "Albert Einstein", "honour", "Literature"));
-		String query = "Nobel Prize";
-
-		ArrayList<String> resultKeywords = new ArrayList<String>();
+		List<String> resultKeywords = new ArrayList<String>();
 		
 		for (String keyword : keywords) {
 
@@ -81,7 +69,7 @@ public class WordnetParser {
 			}
 		
 		System.out.println(resultKeywords);
-			
+		return keywords;
 		}
 
 

@@ -3,6 +3,8 @@ package org.unipaderborn.snlp;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,9 +19,11 @@ import org.unipaderborn.snlp.models.InputFact;
 import org.unipaderborn.snlp.models.SearchResults;
 import org.unipaderborn.snlp.models.SentenceRelationKeyWordsObject;
 import org.unipaderborn.snlp.models.SentenceRelationObject;
+import org.unipaderborn.snlp.nlp.StanfordNLPParser;
 import org.unipaderborn.snlp.nlp.WatsonNLPParser;
 import org.unipaderborn.snlp.nlp.WordnetParser;
-import org.unipaderborn.snlp.search.FactAssesmentMethods;
+import org.unipaderborn.snlp.search.FactScorer;
+import org.unipaderborn.snlp.search.Stopwords;
 import org.unipaderborn.snlp.web.ExtractDataFromWeb;
 
 import com.google.gson.JsonArray;
@@ -43,10 +47,13 @@ import edu.stanford.nlp.ling.CoreAnnotations.PartOfSpeechAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.HasWord;
+import edu.stanford.nlp.ling.SentenceUtils;
 import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.pipeline.StanfordCoreNLPClient;
+import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.util.CoreMap;
 
 public class FactChecking {
@@ -56,17 +63,59 @@ public class FactChecking {
 		System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
 		System.out.println("Enter your String to Search: ");
 
+		String paragraph = "My 1st sentence. “Does it work for questions?” My third sentence.";
+		Reader reader = new StringReader(paragraph);
+		DocumentPreprocessor dp = new DocumentPreprocessor(reader);
+		List<String> sentenceList = new ArrayList<String>();
+
+		for (List<HasWord> sentence : dp) {
+		   // SentenceUtils not Sentence
+		   String sentenceString = SentenceUtils.listToString(sentence);
+		   sentenceList.add(sentenceString);
+		}
+
+		for (String sentence : sentenceList) {
+		   System.out.println(sentence);
+		}
+		
+		
 		// Check for wordnet synonyms
-		WordnetParser wordnetParser = new WordnetParser();
-		wordnetParser.synonymExtractor();
+		
+		String text1 = "Nobel Prize in Literature is Albert Einstein's honour.";
+		
+		String s1 = "Hello from the other side \n" + 
+				"I must have called a thousand times \n" + 
+				"To tell you I'm sorry for everything that I've done \n" + 
+				"But when I call you never seem to be home…";
+		String s2 = "Albert Einstein received his Nobel Prize one year later, in 1922. During the \\n\" + \n" + 
+				"				\"selection process in 1921, the Nobel Committee for Physics decided that none of \\n\" + \n" + 
+				"				\"the year's nominations met the criteria as outlined in the will of Alfred Nobel.";
+		
+		StanfordNLPParser stanParser = new StanfordNLPParser();
+		System.out.println(stanParser.sentencePreprocess(text1));
+		
+		//StanfordNLPParser.sentencePreprocessLemmatize(s1);
+		
+		FactScorer fc = new FactScorer();
+		fc.calculateSentenceSimilarity("Nobel Prize in Literature is Albert Einstein's honour.", s1);
+		
+		fc.findKeywordsSimilarity();
+		
 		
 		System.exit(1);
+		
 		
 		// Reading the Input Fact statements from a TSV file
 		IOHandler ioHandler = new IOHandler();
 		List<InputFact> inputFacts = ioHandler.readFactsFromCSV("train.tsv");
         //System.exit(1);
 		
+		String text = "Nobel Prize in Literature is David Baltimore's 123121231 honour";
+		
+		Stopwords stopword = new Stopwords();
+		System.out.println(stopword.removeStopwords(text));
+		
+		System.exit(0);
 		
 		StringTokenizer tokens = new StringTokenizer(text);
 		System.out.println(tokens.countTokens());
@@ -75,9 +124,9 @@ public class FactChecking {
 
 		//getCorefrenceFromData(inputstatement1);
 		getRelationsFromData(text);
-		getRelationsFromData(inputstatement1);
+		//getRelationsFromData(inputstatement1);
 		
-		System.exit(1);
+		//System.exit(1);
 		
 		/*
 		String test = "2012 (film) stars Amanda Peet.";
@@ -160,21 +209,13 @@ public class FactChecking {
 
 		// Get page rank of a website //GetPageRank obj = new GetPageRank();
 
-		FactAssesmentMethods fc = new FactAssesmentMethods();
+		
 		String[] factToAssess = new String[3];
 		factToAssess[0] = "Albert Einstein";
 		factToAssess[1] = "born";
 		factToAssess[2] = "Ulm";
 
 		// testApacheJena();
-
-		for (SearchResults res : extractFromSearchEngine) {
-			boolean isStatementTrue = fc.BagOfWordsApproach(factToAssess, res.getBody() + res.getTitle(), 1, 1, 1);
-
-			if (isStatementTrue) {
-				System.out.println("Document " + res.getTitle() + "Contains input string");
-			}
-		}
 
 		// getRelationsFromData();
 
