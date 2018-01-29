@@ -1,6 +1,7 @@
 package org.unipaderborn.snlp.web;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -9,6 +10,7 @@ import java.net.URLEncoder;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -52,15 +54,15 @@ public class ExtractDataFromWeb {
 
             //System.out.print("The subject is " + PrintUtil.removePrefix(subject.toString()) + "\n");
 
-            System.out.print("The predicate is " + predicate.toString() + "\n");
+            //System.out.print("The predicate is " + predicate.toString() + "\n");
             if (object instanceof Resource) {
-                System.out.print("The object is " + object.toString() + "\n");
+                //System.out.print("The object is " + object.toString() + "\n");
             } else {
                 // object is a literal
-                System.out.print(" \"" + object.toString() + "\"");
+                //System.out.print(" \"" + object.toString() + "\"");
             }
 
-            System.out.println(" .");
+            //System.out.println(" .");
         }
     }
     
@@ -82,7 +84,7 @@ public class ExtractDataFromWeb {
     	ArrayList<SearchResults> customsearchResults= new ArrayList<SearchResults>(); 
     	
     	String URIString = "https://www.googleapis.com/customsearch/v1?key=";
-    	String key="AIzaSyDSBzaDhhzvFjtu6axrDqc76GkXclFvWao";
+    	String key="AIzaSyDkT7Ztmip-tgxAwYSkr9zmQO1i5ZJsp4o";
     	String customSearchEngineID = "009393578226351920957:t1ghgtufjhi";
     	String fields = "queries,items(title,link,snippet)";
     	URLEncoder.encode(query, "UTF-8");
@@ -109,7 +111,7 @@ public class ExtractDataFromWeb {
         searchResult = Normalizer.normalize(searchResult, Normalizer.Form.NFD);
         String normalizedString = searchResult.replaceAll("[^\\x00-\\x7F\"\']", "").replaceAll("\\\\n", "").replaceAll("\\\\r", "");
         
-        System.out.println(normalizedString);
+        //System.out.println(normalizedString);
         
         
         if (sb == null || sb.toString().equals("")) {
@@ -120,7 +122,7 @@ public class ExtractDataFromWeb {
         	return customsearchResults;
         }
         
-        JsonObject rootObj = parser.parse(searchResult).getAsJsonObject();
+        JsonObject rootObj = parser.parse(normalizedString).getAsJsonObject();
        
         // Checks in retreived json result, the count of the results returned,
         /*
@@ -142,7 +144,7 @@ public class ExtractDataFromWeb {
         JsonArray request = queriesJson.getAsJsonArray("request");
         JsonObject requestJson = (JsonObject) request.get(0);
         int totalResults = requestJson.get("totalResults").getAsInt();
-        System.out.println("Total Results = " + totalResults);
+        //System.out.println("Total Results = " + totalResults);
         
         // Fetch the details from the webpages only if the results returned are greater than 0
         if(totalResults  > 0) {
@@ -163,7 +165,7 @@ public class ExtractDataFromWeb {
             }
         	
         }  else {
-        	System.out.println("No results returned from google search");
+        	//System.out.println("No results returned from google search");
         	SearchResults res = setSearchResultsObj("No result", "No result", "No result");
         	customsearchResults.add(res);
         }

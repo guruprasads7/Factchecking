@@ -1,6 +1,8 @@
 package org.unipaderborn.snlp.nlp;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +34,6 @@ public class WatsonNLPParser {
 		
 	public SentenceRelationKeyWordsObject getRelationsKeywords(String inputstatement) {
 
-		System.out.println("hello");
-		
 		SentenceRelationKeyWordsObject relationsKeywords = new SentenceRelationKeyWordsObject();
 		
 		SentenceRelationObject extracttedRelations = new SentenceRelationObject();
@@ -53,14 +53,21 @@ public class WatsonNLPParser {
 			System.out.println("Error occured while calling the watson API" + e.getMessage());
 			extracttedRelations = setSentenceRelationObject("error", "error", "error");
 			relationsKeywords.setRelationsObject(extracttedRelations);
+			List<String> keywordsArr = Arrays.asList(inputstatement.replaceAll("[^\\x00-\\x7F\"']", "").replaceAll("\\\\n", "").replaceAll("\\\\r", "").toLowerCase().split("\\s+"));
+			relationsKeywords.setKeywords(keywordsArr);
 			return relationsKeywords;
 		}
 		
-		System.out.println("hello");
-		System.out.println(response);
+		//System.out.println("hello");
+		//System.out.println(response);
+		
+		String searchResult = response.toString();
+        searchResult = Normalizer.normalize(searchResult, Normalizer.Form.NFD);
+        String normalizedString = searchResult.replaceAll("[^\\x00-\\x7F\"\']", "").replaceAll("\\\\n", "").replaceAll("\\\\r", "");
+		
 
-		extracttedRelations = extractSubjectObjectPredicate(response.toString());
-		extractedKeywords = extractKeywordsRelevance(response.toString());
+		extracttedRelations = extractSubjectObjectPredicate(normalizedString);
+		extractedKeywords = extractKeywordsRelevance(normalizedString);
 		
 		relationsKeywords.setRelationsObject(extracttedRelations);
 		relationsKeywords.setKeywords(extractedKeywords);
@@ -93,7 +100,7 @@ public class WatsonNLPParser {
 			
 		}
 
-		System.out.println("Keywords = " + keywordsArr.toString());
+		//System.out.println("Keywords = " + keywordsArr.toString());
 		
 		return keywordsArr;
 
@@ -137,7 +144,7 @@ public class WatsonNLPParser {
 			JsonObject objectObj = sematicRolesObj.get("object").getAsJsonObject();
 			String object = objectObj.get("text").getAsString();
 
-			System.out.println("Subject = " + subject + " Object = " + object + " Predicate =  " + predicate);
+			//System.out.println("Subject = " + subject + " Object = " + object + " Predicate =  " + predicate);
 			
 			relationsObj = setSentenceRelationObject(subject,object,predicate);
 		}

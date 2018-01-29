@@ -32,7 +32,7 @@ public class Stopwords {
         	if(isStopword(word)) continue;
         	output += (word+" ");
         }
-        System.out.println("Stopword removal = " + output);
+        //System.out.println("Stopword removal = " + output);
         return output;
     }
 

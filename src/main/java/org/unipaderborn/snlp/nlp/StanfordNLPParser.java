@@ -74,7 +74,7 @@ public class StanfordNLPParser {
         String lemmatizedString = String.join(" ", lemmas);
         processedString = stopwordremover.removeStopwords(lemmatizedString);
         
-        return lemmatizedString;
+        return processedString;
     }
 	
 }

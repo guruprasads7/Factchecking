@@ -18,7 +18,6 @@ import java.util.StringTokenizer;
 import org.unipaderborn.snlp.models.InputFact;
 import org.unipaderborn.snlp.models.SearchResults;
 import org.unipaderborn.snlp.models.SentenceRelationKeyWordsObject;
-import org.unipaderborn.snlp.models.SentenceRelationObject;
 import org.unipaderborn.snlp.nlp.StanfordNLPParser;
 import org.unipaderborn.snlp.nlp.WatsonNLPParser;
 import org.unipaderborn.snlp.nlp.WordnetParser;
@@ -62,22 +61,50 @@ public class FactChecking {
 
 		System.setProperty("javax.xml.bind.JAXBContextFactory", "org.eclipse.persistence.jaxb.JAXBContextFactory");
 		System.out.println("Enter your String to Search: ");
-
-		String paragraph = "My 1st sentence. “Does it work for questions?” My third sentence.";
-		Reader reader = new StringReader(paragraph);
-		DocumentPreprocessor dp = new DocumentPreprocessor(reader);
-		List<String> sentenceList = new ArrayList<String>();
-
-		for (List<HasWord> sentence : dp) {
-		   // SentenceUtils not Sentence
-		   String sentenceString = SentenceUtils.listToString(sentence);
-		   sentenceList.add(sentenceString);
-		}
-
-		for (String sentence : sentenceList) {
-		   System.out.println(sentence);
-		}
 		
+		WatsonNLPParser watsonparser = new WatsonNLPParser();
+		FactScorer factscorer = new FactScorer();
+		ExtractDataFromWeb webcrawl = new ExtractDataFromWeb();
+		
+		// Reading the Input Fact statements from a TSV file
+		IOHandler ioHandler = new IOHandler();
+		List<InputFact> inputFacts = ioHandler.readFactsFromCSV("train.tsv");
+
+		HashMap<String, List<String>> queryAndResultsFromWeb = new HashMap<String, List<String>>();
+		
+		int count = 0;
+		for (InputFact factstmt : inputFacts) {
+			double predicatedValue = 0.0;
+			System.out.println("Processing Query : " + factstmt.getFactStatement());
+			
+	
+			ArrayList<SearchResults> results = webcrawl
+					.getResultsCustomGoogleSearch(factstmt.getFactStatement());
+			
+			SentenceRelationKeyWordsObject relationsKeywords = watsonparser.getRelationsKeywords(factstmt.getFactStatement());
+			System.out.println(relationsKeywords.getKeywords());
+			
+			double factscore = factscorer.factvalidator(factstmt.getFactStatement(), relationsKeywords, results);
+			
+			if (factscore >= 1) {
+				predicatedValue = 1.0;
+			}
+			System.out.println(factstmt.getFactStatement() + "Assigned fact = " + factstmt.getTrueFalse() + " Predicated Score = " + predicatedValue);
+			
+			
+			// Printing the input to an output file
+			List<String> resBody = new ArrayList<String>();
+			for (SearchResults res : results) {
+				resBody.add(res.getTitle() + "|" + res.getBody());
+			}
+			queryAndResultsFromWeb.put(factstmt.getFactStatement(),resBody);
+			count++;
+			if (count >= 5) {
+				break;
+			}
+		}
+	
+		System.exit(1);
 		
 		// Check for wordnet synonyms
 		
@@ -91,24 +118,26 @@ public class FactChecking {
 				"				\"selection process in 1921, the Nobel Committee for Physics decided that none of \\n\" + \n" + 
 				"				\"the year's nominations met the criteria as outlined in the will of Alfred Nobel.";
 		
+		
 		StanfordNLPParser stanParser = new StanfordNLPParser();
-		System.out.println(stanParser.sentencePreprocess(text1));
+		String processedString = stanParser.sentencePreprocess(text1);
 		
 		//StanfordNLPParser.sentencePreprocessLemmatize(s1);
 		
 		FactScorer fc = new FactScorer();
 		fc.calculateSentenceSimilarity("Nobel Prize in Literature is Albert Einstein's honour.", s1);
 		
-		fc.findKeywordsSimilarity();
+		List<String> keywordsTest = new ArrayList<String>();
+		keywordsTest.add("albert eintein|einstein");
+		keywordsTest.add("honour|honor|award");
+		
+		double matchscore = fc.findKeywordsSimilarity(keywordsTest,processedString);
 		
 		
 		System.exit(1);
 		
 		
-		// Reading the Input Fact statements from a TSV file
-		IOHandler ioHandler = new IOHandler();
-		List<InputFact> inputFacts = ioHandler.readFactsFromCSV("train.tsv");
-        //System.exit(1);
+		//System.exit(1);
 		
 		String text = "Nobel Prize in Literature is David Baltimore's 123121231 honour";
 		
@@ -140,9 +169,9 @@ public class FactChecking {
 		System.exit(1);
 		*/
 		
+		        
+		
 		// Query Web using google custom search API
-		ExtractDataFromWeb webcrawl = new ExtractDataFromWeb();
-		HashMap<String, List<String>> queryAndResultsFromWeb = new HashMap<String, List<String>>();
 		
 		/*
 		// Test for single query from google
@@ -154,28 +183,11 @@ public class FactChecking {
 		System.exit(1);
 		*/
 		
-		int count = 0;
-		for (InputFact factstmt : inputFacts) {
-			System.out.println("Processing Query : " + factstmt.getFactStatement());
 			
-			ArrayList<SearchResults> results = webcrawl
-					.getResultsCustomGoogleSearch(factstmt.getFactStatement());
-			
-			List<String> resBody = new ArrayList<String>();
-			for (SearchResults res : results) {
-				resBody.add(res.getTitle() + "|" + res.getBody());
-			}
-			queryAndResultsFromWeb.put(factstmt.getFactStatement(),resBody);
-			count++;
-			if (count > 4) {
-				break;
-			}
-		}
-		
 		printMap(queryAndResultsFromWeb);
 		
 		
-		System.exit(1);
+		//System.exit(1);
 
 		
 
@@ -193,10 +205,7 @@ public class FactChecking {
 		// System.out.println("Your queryString is " + querystring);
 		// scanner.close();
 
-
 		
-		HashMap<String, String> topresult = new HashMap<String, String>();
-
 		// topresult = webcrawl.getTopResults(querystring);
 		// System.out.println(topresult.toString());
 
@@ -210,14 +219,6 @@ public class FactChecking {
 		// Get page rank of a website //GetPageRank obj = new GetPageRank();
 
 		
-		String[] factToAssess = new String[3];
-		factToAssess[0] = "Albert Einstein";
-		factToAssess[1] = "born";
-		factToAssess[2] = "Ulm";
-
-		// testApacheJena();
-
-		// getRelationsFromData();
 
 	}
 	
@@ -234,6 +235,7 @@ public class FactChecking {
 			        System.out.println(pair.getKey() + " = " + pair.getValue());
 			        
 			        outfile.println(pair.getKey() + "\t" + pair.getValue());
+			        outfile.println();
 			        
 			        it.remove(); // avoids a ConcurrentModificationException
 			    }
